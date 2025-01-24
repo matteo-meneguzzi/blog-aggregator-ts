@@ -1,0 +1,20 @@
+{
+	"compilerOptions": {
+		"target": "esnext",
+		"module": "esnext",
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+		"strict": true,
+		"moduleResolution": "Node"
+	},
+	"include": ["./src/**/*.ts"],
+	"exclude": ["node_modules"]
+}
+
+/* 
+include specifies the files to include in the compilation
+exclude specifies the files to exclude from the compilation
+strict enables all strict type checking options
+esModuleInterop allows you to use ES module syntax
+moduleResolution specifies how modules are resolved
+ */

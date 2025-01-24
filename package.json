@@ -1,0 +1,26 @@
+{
+	"name": "blog-aggregator-ts",
+	"version": "1.0.0",
+	"description": "",
+	"main": "index.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"start": "tsx ./src/index.ts",
+		"generate": "drizzle-kit generate",
+		"migrate": "drizzle-kit migrate"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"devDependencies": {
+		"@types/node": "^22.10.7",
+		"drizzle-kit": "^0.30.2",
+		"tsx": "^4.19.2",
+		"typescript": "^5.7.3"
+	},
+	"type": "module",
+	"dependencies": {
+		"drizzle-orm": "^0.38.4",
+		"postgres": "^3.4.5"
+	}
+}
