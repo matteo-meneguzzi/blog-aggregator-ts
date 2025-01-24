@@ -1,5 +1,6 @@
 import { readConfig, setUser } from "../config";
 import { createUser, deleteAllUsers, getUserName, getUsers } from "../db/queries/users";
+import { fetchFeed } from "../rss_feed";
 
 export async function handlerLogin (cmdName: string, ...args: string[])
 {
@@ -80,6 +81,31 @@ export async function handlerListUsers (cmdName: string, ...args: string[])
                 user.name + " (current)"
                 : user.name }'`);
         })
+    } catch (error)
+    {
+        if (error instanceof Error)
+        {
+            throw new Error(error.message);
+        } else
+        {
+            throw new Error(`unexpected error listing users, ${ error }`)
+        }
+    }
+}
+
+export async function handlerAggregate (cmdName: string, ...args: string[])
+{
+    try
+    {
+        const feedURL = 'https://www.wagslane.dev/index.xml';
+        const feedData = await fetchFeed(feedURL)
+        const feedDataStr = JSON.stringify(feedData, null, 2);
+
+        console.log(feedDataStr);
+
+        /*         console.log(`- '${ feed.channel.item[0].title }'`)
+                console.log(`- '${ feed.channel.item[0].description }'`)
+         */
     } catch (error)
     {
         if (error instanceof Error)
