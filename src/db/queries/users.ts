@@ -1,9 +1,10 @@
 import { db } from '..';
+import { User } from '../../helpers';
 import { users } from '../schema';
 import { eq } from "drizzle-orm";
 
 export async function createUser (name: string):
-    Promise<{ id: string; name: string; createdAt: Date; updatedAt: Date; }>  
+    Promise<User>  
 {
 
     const [result] = await db.insert(users).values({ name: name }).returning();

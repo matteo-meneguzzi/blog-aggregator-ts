@@ -1,5 +1,7 @@
 import { readConfig, setUser } from "../config";
+import { createFeed } from "../db/queries/feeds";
 import { createUser, deleteAllUsers, getUserName, getUsers } from "../db/queries/users";
+import { printFeed } from "../helpers";
 import { fetchFeed } from "../rss_feed";
 
 export async function handlerLogin (cmdName: string, ...args: string[])
@@ -114,6 +116,57 @@ export async function handlerAggregate (cmdName: string, ...args: string[])
         } else
         {
             throw new Error(`unexpected error listing users, ${ error }`)
+        }
+    }
+}
+
+export async function handlerAddFeed (cmdName: string, ...args: string[])
+{
+    if (args.length !== 2)
+    {
+        throw new Error(`usage: ${ cmdName } <feed_name> <url>`);
+    }
+    const config = readConfig();
+    const currentUser = config.currentUserName
+    if (currentUser === "" || !currentUser)
+    {
+        throw new Error(`No user is currently logged`);
+    }
+    const user = await getUserName(currentUser)
+    if (!user)
+    {
+        throw new Error(`User "${ currentUser }" not found in the database`);
+    }
+
+    const feedName = args[0];
+    const url = args[1];
+    if (!feedName)
+    {
+        throw new Error(`No feed name provided`);
+    }
+    if (!url)
+    {
+        throw new Error(`No feed url provided`);
+    }
+
+    try
+    {
+        const feed = await createFeed(feedName, url, user.id);
+        if (!feed)
+        {
+            throw new Error(`Failed to create feed`);
+        }
+
+        console.log('Feed created successfully:');
+        printFeed(feed, user);
+    } catch (error)
+    {
+        if (error instanceof Error)
+        {
+            throw new Error(error.message);
+        } else
+        {
+            throw new Error(`unexpected error creating feed, ${ error }`)
         }
     }
 }

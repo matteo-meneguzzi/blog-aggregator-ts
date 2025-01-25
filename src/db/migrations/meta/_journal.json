@@ -8,6 +8,13 @@
       "when": 1737641518840,
       "tag": "0000_romantic_shard",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1737736498697,
+      "tag": "0001_giant_killmonger",
+      "breakpoints": true
     }
   ]
 }
