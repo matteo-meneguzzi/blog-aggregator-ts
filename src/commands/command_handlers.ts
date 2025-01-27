@@ -1,5 +1,5 @@
 import { readConfig, setUser } from "../config";
-import { createFeed } from "../db/queries/feeds";
+import { createFeed, getFeeds } from "../db/queries/feeds";
 import { createUser, deleteAllUsers, getUserName, getUsers } from "../db/queries/users";
 import { printFeed } from "../helpers";
 import { fetchFeed } from "../rss_feed";
@@ -126,11 +126,12 @@ export async function handlerAddFeed (cmdName: string, ...args: string[])
     {
         throw new Error(`usage: ${ cmdName } <feed_name> <url>`);
     }
+
     const config = readConfig();
     const currentUser = config.currentUserName
     if (currentUser === "" || !currentUser)
     {
-        throw new Error(`No user is currently logged`);
+        throw new Error(`No user is currently logged in`);
     }
     const user = await getUserName(currentUser)
     if (!user)
@@ -167,6 +168,33 @@ export async function handlerAddFeed (cmdName: string, ...args: string[])
         } else
         {
             throw new Error(`unexpected error creating feed, ${ error }`)
+        }
+    }
+}
+
+export async function handlerListFeeds (cmdName: string, ...args: string[])
+{
+    try
+    {
+
+        const feeds = await getFeeds()
+        if (feeds.length === 0)
+        {
+            console.log(`No feeds found.`);
+            return;
+        }
+
+        const feedDataStr = JSON.stringify(feeds, null, 2);
+
+        console.log(feedDataStr);
+    } catch (error)
+    {
+        if (error instanceof Error)
+        {
+            throw new Error(error.message);
+        } else
+        {
+            throw new Error(`unexpected error listing users, ${ error }`)
         }
     }
 }

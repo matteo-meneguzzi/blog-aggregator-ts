@@ -1,7 +1,7 @@
 import { db } from '..';
-import { feeds } from '../schema';
+import { feeds, users } from '../schema';
 import { eq } from "drizzle-orm";
-import { Feed } from '../../helpers';
+import { Feed, User } from '../../helpers';
 
 export async function createFeed (name: string, url: string, user_id: string):
     Promise<Feed>  
@@ -17,9 +17,9 @@ export async function getFeedName (name: string): Promise<Feed>
     return result;
 }
 
-export async function getFeeds (): Promise<Feed[]>
+export async function getFeeds (): Promise<{ name: string; url: string; user_name: string | null; }[]>
 {
-    const result = await db.select().from(feeds)
+    const result: { name: string; url: string; user_name: string | null; }[] = await db.select({ name: feeds.name, url: feeds.url, user_name: users.name }).from(feeds).leftJoin(users, eq(feeds.user_id, users.id));
     return result;
 }
 
