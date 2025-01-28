@@ -1,7 +1,7 @@
 import { readConfig, setUser } from "../config";
 import { createFeed, createFeedFollow, getFeedFollowsForUser, getFeeds } from "../db/queries/feeds";
-import { createUser, deleteAllUsers, getUserName, getUsers } from "../db/queries/users";
-import { printFeed } from "../helpers";
+import { createUser, deleteAllUsers, getUser, getUsers } from "../db/queries/users";
+import { printFeed, User } from "../helpers";
 import { fetchFeed } from "../rss_feed";
 
 export async function handlerLogin (cmdName: string, ...args: string[])
@@ -11,7 +11,7 @@ export async function handlerLogin (cmdName: string, ...args: string[])
     {
         throw new Error("No username provided")
     }
-    const userInDb = await getUserName(username)
+    const userInDb = await getUser(username)
     if (!userInDb)
     {
         throw new Error(`User "${ username }" not found in the database`);
@@ -54,7 +54,7 @@ export async function handlerRegister (cmdName: string, ...args: string[])
     }
 }
 
-export async function handlerReset (cmdName: string, ...args: string[])
+export async function handlerReset (cmdName: string)
 {
     try
     {
@@ -71,7 +71,7 @@ export async function handlerReset (cmdName: string, ...args: string[])
     }
 }
 
-export async function handlerListUsers (cmdName: string, ...args: string[])
+export async function handlerListUsers (cmdName: string)
 {
     const config = readConfig();
     try
@@ -95,7 +95,7 @@ export async function handlerListUsers (cmdName: string, ...args: string[])
     }
 }
 
-export async function handlerAggregate (cmdName: string, ...args: string[])
+export async function handlerAggregate (cmdName: string)
 {
     try
     {
@@ -120,23 +120,11 @@ export async function handlerAggregate (cmdName: string, ...args: string[])
     }
 }
 
-export async function handlerAddFeed (cmdName: string, ...args: string[])
+export async function handlerAddFeed (cmdName: string, user: User, ...args: string[])
 {
     if (args.length !== 2)
     {
         throw new Error(`usage: ${ cmdName } <feed_name> <url>`);
-    }
-
-    const config = readConfig();
-    const currentUser = config.currentUserName
-    if (currentUser === "" || !currentUser)
-    {
-        throw new Error(`No user is currently logged in`);
-    }
-    const user = await getUserName(currentUser)
-    if (!user)
-    {
-        throw new Error(`User "${ currentUser }" not found in the database`);
     }
 
     const feedName = args[0];
@@ -181,7 +169,7 @@ export async function handlerAddFeed (cmdName: string, ...args: string[])
     }
 }
 
-export async function handlerListFeeds (cmdName: string, ...args: string[])
+export async function handlerListFeeds (cmdName: string)
 {
     try
     {
@@ -208,23 +196,11 @@ export async function handlerListFeeds (cmdName: string, ...args: string[])
     }
 }
 
-export async function handlerFollow (cmdName: string, ...args: string[])
+export async function handlerFollow (cmdName: string, user: User, ...args: string[])
 {
     if (args.length !== 1)
     {
         throw new Error(`usage: ${ cmdName } <url>`);
-    }
-
-    const config = readConfig();
-    const currentUser = config.currentUserName
-    if (currentUser === "" || !currentUser)
-    {
-        throw new Error(`No user is currently logged in`);
-    }
-    const user = await getUserName(currentUser)
-    if (!user)
-    {
-        throw new Error(`User "${ currentUser }" not found in the database`);
     }
 
     const url = args[0];
@@ -252,23 +228,10 @@ export async function handlerFollow (cmdName: string, ...args: string[])
     }
 }
 
-export async function handlerListFollows (cmdName: string, ...args: string[])
+export async function handlerListFollows (cmdName: string, user: User)
 {
-    const config = readConfig();
-    const currentUser = config.currentUserName
-    if (currentUser === "" || !currentUser)
-    {
-        throw new Error(`No user is currently logged in`);
-    }
-    const user = await getUserName(currentUser)
-    if (!user)
-    {
-        throw new Error(`User "${ currentUser }" not found in the database`);
-    }
-
     try
     {
-
         const follows = await getFeedFollowsForUser(user.id)
         if (follows.length === 0)
         {

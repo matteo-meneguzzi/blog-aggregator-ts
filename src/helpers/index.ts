@@ -1,4 +1,4 @@
-import { getUserName } from "../db/queries/users";
+import { getUser } from "../db/queries/users";
 import { feeds, users } from "../db/schema";
 
 export type Feed = typeof feeds.$inferSelect;

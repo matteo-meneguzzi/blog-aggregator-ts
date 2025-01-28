@@ -11,7 +11,7 @@ export async function createUser (name: string):
     return result;
 }
 
-export async function getUserName (name: string): Promise<{ id: string; name: string; createdAt: Date; updatedAt: Date; }>
+export async function getUser (name: string): Promise<{ id: string; name: string; createdAt: Date; updatedAt: Date; }>
 {
     const [result] = await db.select().from(users).where(eq(users.name, name))
     return result;

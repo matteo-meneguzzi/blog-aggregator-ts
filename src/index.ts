@@ -1,6 +1,7 @@
 import { argv } from "process";
 import { handlerLogin, handlerRegister, handlerReset, handlerListUsers, handlerAggregate, handlerAddFeed, handlerListFeeds, handlerListFollows, handlerFollow } from "./commands/command_handlers";
 import { CommandsRegistry, registerCommand, runCommand } from "./commands/commands";
+import { middlewareLoggedIn } from "./middleware";
 
 async function main ()
 {
@@ -10,10 +11,10 @@ async function main ()
     registerCommand(commandsRegistry, "reset", handlerReset)
     registerCommand(commandsRegistry, "users", handlerListUsers)
     registerCommand(commandsRegistry, "agg", handlerAggregate)
-    registerCommand(commandsRegistry, "addfeed", handlerAddFeed)
+    registerCommand(commandsRegistry, "addfeed", middlewareLoggedIn(handlerAddFeed))
     registerCommand(commandsRegistry, "feeds", handlerListFeeds)
-    registerCommand(commandsRegistry, "follow", handlerFollow)
-    registerCommand(commandsRegistry, "following", handlerListFollows)
+    registerCommand(commandsRegistry, "follow", middlewareLoggedIn(handlerFollow))
+    registerCommand(commandsRegistry, "following", middlewareLoggedIn(handlerListFollows))
 
     const args = argv.slice(2);
     if (args.length < 1)
