@@ -1,5 +1,5 @@
 import { readConfig, setUser } from "../config";
-import { createFeed, getFeeds } from "../db/queries/feeds";
+import { createFeed, createFeedFollow, getFeedFollowsForUser, getFeeds } from "../db/queries/feeds";
 import { createUser, deleteAllUsers, getUserName, getUsers } from "../db/queries/users";
 import { printFeed } from "../helpers";
 import { fetchFeed } from "../rss_feed";
@@ -152,7 +152,7 @@ export async function handlerAddFeed (cmdName: string, ...args: string[])
 
     try
     {
-        const feed = await createFeed(feedName, url, user.id);
+        const feed = await createFeed(feedName, url);
         if (!feed)
         {
             throw new Error(`Failed to create feed`);
@@ -160,6 +160,15 @@ export async function handlerAddFeed (cmdName: string, ...args: string[])
 
         console.log('Feed created successfully:');
         printFeed(feed, user);
+
+        const follow = await createFeedFollow(url, user.id);
+        if (!follow)
+        {
+            throw new Error(`Failed to create follow`);
+        }
+
+        console.log(`Successfully added feed "${ feed.name }" and followed it as user "${ user.name }"`);
+
     } catch (error)
     {
         if (error instanceof Error)
@@ -194,7 +203,89 @@ export async function handlerListFeeds (cmdName: string, ...args: string[])
             throw new Error(error.message);
         } else
         {
-            throw new Error(`unexpected error listing users, ${ error }`)
+            throw new Error(`unexpected error listing feeds, ${ error }`)
+        }
+    }
+}
+
+export async function handlerFollow (cmdName: string, ...args: string[])
+{
+    if (args.length !== 1)
+    {
+        throw new Error(`usage: ${ cmdName } <url>`);
+    }
+
+    const config = readConfig();
+    const currentUser = config.currentUserName
+    if (currentUser === "" || !currentUser)
+    {
+        throw new Error(`No user is currently logged in`);
+    }
+    const user = await getUserName(currentUser)
+    if (!user)
+    {
+        throw new Error(`User "${ currentUser }" not found in the database`);
+    }
+
+    const url = args[0];
+
+    try
+    {
+        const follow = await createFeedFollow(url, user.id);
+        if (!follow)
+        {
+            throw new Error(`Failed to create follow`);
+        }
+
+        console.log('Follow created successfully:');
+        console.log(follow.feedName);
+        console.log(follow.userName);
+    } catch (error)
+    {
+        if (error instanceof Error)
+        {
+            throw new Error(error.message);
+        } else
+        {
+            throw new Error(`unexpected error handling follow operation, ${ error }`)
+        }
+    }
+}
+
+export async function handlerListFollows (cmdName: string, ...args: string[])
+{
+    const config = readConfig();
+    const currentUser = config.currentUserName
+    if (currentUser === "" || !currentUser)
+    {
+        throw new Error(`No user is currently logged in`);
+    }
+    const user = await getUserName(currentUser)
+    if (!user)
+    {
+        throw new Error(`User "${ currentUser }" not found in the database`);
+    }
+
+    try
+    {
+
+        const follows = await getFeedFollowsForUser(user.id)
+        if (follows.length === 0)
+        {
+            console.log(`No feeds found.`);
+            return;
+        }
+
+        follows.forEach(follow => console.log("Feed name: " + follow.feedName))
+
+    } catch (error)
+    {
+        if (error instanceof Error)
+        {
+            throw new Error(error.message);
+        } else
+        {
+            throw new Error(`unexpected error listing follows, ${ error }`)
         }
     }
 }

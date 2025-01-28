@@ -15,6 +15,13 @@
       "when": 1737736498697,
       "tag": "0001_giant_killmonger",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1737989029661,
+      "tag": "0002_concerned_leopardon",
+      "breakpoints": true
     }
   ]
 }
