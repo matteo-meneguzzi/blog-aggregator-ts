@@ -1,6 +1,6 @@
 import { db } from '..';
 import { feed_follows, feeds, users } from '../schema';
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { Feed, User } from '../../helpers';
 
 export async function createFeed (name: string, url: string):
@@ -52,6 +52,24 @@ export async function createFeedFollow (url: string, userId: string):
     console.log("🚀 ~ followResult:", followResult)
 
     return followResult;
+}
+
+export async function deleteFeedFollow (url: string, userId: string):
+    Promise<{
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        userId: string;
+        feedId: string;
+    }>  
+{
+    const [feedResult] = await db.select().from(feeds).where(eq(feeds.url, url))
+    console.log("🚀 ~ feedResult:", feedResult)
+    console.log("🚀 ~ userId:", userId)
+    const [deletedFollow] = await db.delete(feed_follows).where(and(eq(feed_follows.feedId, feedResult.id), eq(feed_follows.userId, userId))).returning();
+    console.log("🚀Successfully deleted follow:", deletedFollow)
+
+    return deletedFollow;
 }
 
 export async function getFeedFollowsForUser (userId: string):
