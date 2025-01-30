@@ -1,5 +1,6 @@
 import { createFeed, createFeedFollow, deleteFeedFollow, getFeedFollowsForUser, getFeeds, getNextFeedToFetch, markFeedFetched } from "../db/queries/feeds";
-import { parseDuration, printFeed, updateDuration, User } from "../helpers";
+import { createPost, getPostsForUser } from "../db/queries/posts";
+import { parseDuration, parseExternalDate, printFeed, updateDuration, User } from "../helpers";
 import { fetchFeed } from "../rss_feed";
 
 export async function handlerAggregate (cmdName: string, ...args: string[])
@@ -225,6 +226,28 @@ export async function scrapeFeeds ()
         const feedDataStr = JSON.stringify(feedData, null, 2);
 
         console.log(feedDataStr);
+
+        feedData.channel.item.forEach(item =>
+        {
+            try
+            {
+                createPost(nextFeed.id, item.title, item.link, new Date(item.pubDate), item.description)
+            } catch (error)
+            {
+                if (error instanceof Error)
+                {
+                    if (error.message.includes("duplicate"))
+                    {
+                        return
+                    }
+                    console.log(error);
+
+                } else
+                {
+                    throw new Error(`unexpected error handling follow operation, ${ error }`)
+                }
+            }
+        })
     } catch (error)
     {
         if (error instanceof Error)
@@ -237,3 +260,46 @@ export async function scrapeFeeds ()
     }
 }
 
+export async function handlerBrowse (cmdName: string, user: User, ...args: string[])
+{
+    let limit = 2;
+    if (args.length > 1)
+    {
+        throw new Error(`usage: ${ cmdName } [limit]`);
+    }
+
+    if (args.length === 1)
+    {
+        limit = parseInt(args[0]);
+    }
+
+    try
+    {
+        const posts = await getPostsForUser(user.id, limit)
+        if (posts.length === 0)
+        {
+            console.log(`No posts found.`);
+            return;
+        }
+
+        console.log(`Found ${ posts.length } posts for user ${ user.name }`);
+        for (let post of posts)
+        {
+            console.log(`${ post.publishedAt } from ${ post.feedName }`);
+            console.log(`--- ${ post.title } ---`);
+            console.log(`    ${ post.description }`);
+            console.log(`Link: ${ post.url }`);
+            console.log(`=====================================`);
+        }
+
+    } catch (error)
+    {
+        if (error instanceof Error)
+        {
+            throw new Error(error.message);
+        } else
+        {
+            throw new Error(`unexpected error listing follows, ${ error }`)
+        }
+    }
+}

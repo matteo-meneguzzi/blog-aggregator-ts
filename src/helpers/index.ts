@@ -1,8 +1,9 @@
-import { feeds, users, feedFollows } from "../db/schema";
+import { feeds, users, feedFollows, posts } from "../db/schema";
 
 export type Feed = typeof feeds.$inferSelect;
 export type User = typeof users.$inferSelect;
 export type FeedFollow = typeof feedFollows.$inferSelect;
+export type Post = typeof posts.$inferSelect;
 
 export async function printFeed (feed: Feed, user: User): Promise<void>
 {
@@ -65,4 +66,18 @@ export function updateDuration (userInput: string): string
     }
 
     return defaultDuration;  // If no valid input, return the default duration
+}
+
+export function parseExternalDate (dateString: string): Date
+{
+    const parsedDate = new Date(dateString);
+
+    if (isNaN(parsedDate.getTime()))
+    {
+        throw new Error(`Invalid date format: ${ dateString }`);
+    }
+
+    const formattedDate = parsedDate.toISOString().slice(0, 23).replace("T", " ")
+
+    return new Date(formattedDate);
 }

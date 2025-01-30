@@ -60,3 +60,17 @@ export const usersToFeedsRelations = relations(feedFollows, ({ one }) => ({
         references: [users.id],
     }),
 }));
+
+export const posts = pgTable("posts", {
+    id: uuid("id").primaryKey().defaultRandom().notNull(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at")
+        .notNull()
+        .defaultNow()
+        .$onUpdate(() => new Date()),
+    title: text("title").notNull(),
+    url: text("url").notNull().unique(),
+    description: text("description"),
+    publishedAt: timestamp("published_at"),
+    feedId: uuid('feed_id').references(() => feeds.id, { onDelete: 'cascade' }).notNull(),
+});
