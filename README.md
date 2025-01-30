@@ -45,12 +45,82 @@ The JSON file should have this structure (when prettified):
 "current_user_name": "username_goes_here"
 }
 
-## Setup Instructions
-
-### 1. Clone and Install Dependencies
+## Clone and Install Dependencies
 
 Clone the repository and install the necessary dependencies:
 
 git clone <repository-url>
 cd <project-directory>
 npm install
+
+## Create a DB
+
+Mac:
+
+1. brew install postgresql@16
+2. Ensure the installation worked.
+
+The psql command-line utility is the default client for Postgres. Use it to make sure you're on version 16+ of Postgres:
+
+> psql --version
+
+3. Start the Postgres server in the background
+
+> brew services start postgresql
+
+4. Connect to the server.
+
+I recommend simply using the psql client. It's the "default" client for Postgres, and it's a great way to interact with the database. While it's not as user-friendly as a GUI like PGAdmin, it's a great tool to be able to do at least basic operations with.
+
+Enter the psql shell:
+
+> psql postgres
+
+You should see a new prompt that looks like this:
+
+> postgres=#
+
+5. Create a new database.
+
+I called mine gator:
+
+> CREATE DATABASE gator;
+
+Connect to the new database:
+
+> \c gator
+
+You should see a new prompt that looks like this:
+
+> gator=#
+
+Now you can also use:
+
+> psql "postgres://<username>:@localhost:5432/gator"
+
+## Migrations
+
+Using Drizzle ORM, you can run migrations with:
+
+- npx drizzle-kit generate
+- npx drizzle-kit migrate
+
+## Commands
+
+This is the list of available commands:
+
+### Users
+
+- npm start login <username> - sets the current user in the config
+- npm start register <username> - adds a new user to the database
+- npm start reset - deletes all the users in the database
+- npm start users - lists all the users in the database
+
+### Feeds
+
+- npm start agg <time_between_requests> - scrapes feeds starting from last fetched feed to most recent, creating posts based on single feed
+- npm start addfeed <feed_name> <url> - creates feed
+- npm start follow <url> - creates a follow to a feed based upon feed url and current user
+- npm start unfollow <url> - deletes a follow to a feed based upon feed url and current user
+- npm start following - lists followed feeds for current user
+- npm start browse [limit](optional) - lists posts for current user with optional limit
