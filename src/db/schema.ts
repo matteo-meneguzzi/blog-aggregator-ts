@@ -12,7 +12,7 @@ export const users = pgTable("users", {
 });
 
 export const usersRelations = relations(users, ({ many }) => ({
-    feed_follows: many(feed_follows),
+    feed_follows: many(feedFollows),
 }));
 
 export const feeds = pgTable("feeds", {
@@ -24,13 +24,15 @@ export const feeds = pgTable("feeds", {
         .$onUpdate(() => new Date()),
     name: text("name").notNull(),
     url: text("url").notNull().unique(),
+    lastFetchedAt: timestamp("last_fetched_at")
+        .$onUpdate(() => new Date()),
 });
 
 export const feedsRelations = relations(feeds, ({ many }) => ({
-    feed_follows: many(feed_follows),
+    feed_follows: many(feedFollows),
 }));
 
-export const feed_follows = pgTable(
+export const feedFollows = pgTable(
     'feed_follows',
     {
         id: uuid('id').primaryKey().defaultRandom().notNull(),
@@ -48,13 +50,13 @@ export const feed_follows = pgTable(
     }],
 );
 
-export const usersToFeedsRelations = relations(feed_follows, ({ one }) => ({
+export const usersToFeedsRelations = relations(feedFollows, ({ one }) => ({
     feed: one(feeds, {
-        fields: [feed_follows.feedId],
+        fields: [feedFollows.feedId],
         references: [feeds.id],
     }),
     user: one(users, {
-        fields: [feed_follows.userId],
+        fields: [feedFollows.userId],
         references: [users.id],
     }),
 }));

@@ -1,22 +1,34 @@
-import { readConfig, setUser } from "../config";
-import { createFeed, createFeedFollow, deleteFeedFollow, getFeedFollowsForUser, getFeeds } from "../db/queries/feeds";
-import { createUser, deleteAllUsers, getUser, getUsers } from "../db/queries/users";
-import { printFeed, User } from "../helpers";
+import { createFeed, createFeedFollow, deleteFeedFollow, getFeedFollowsForUser, getFeeds, getNextFeedToFetch, markFeedFetched } from "../db/queries/feeds";
+import { parseDuration, printFeed, updateDuration, User } from "../helpers";
 import { fetchFeed } from "../rss_feed";
 
-export async function handlerAggregate (cmdName: string)
+export async function handlerAggregate (cmdName: string, ...args: string[])
 {
+    if (args.length !== 1)
+    {
+        throw new Error(`usage: ${ cmdName } <time_between_reqs>`);
+    }
+
+    const timeBetweenRequests = args[0]
+    const numericDuration = parseDuration(timeBetweenRequests)
+    const currentDuration = updateDuration(timeBetweenRequests)
+    console.log("Collecting feeds every ", currentDuration);
+
     try
     {
-        const feedURL = 'https://www.wagslane.dev/index.xml';
-        const feedData = await fetchFeed(feedURL)
-        const feedDataStr = JSON.stringify(feedData, null, 2);
+        await scrapeFeeds()
 
-        console.log(feedDataStr);
+        const interval = setInterval(scrapeFeeds, numericDuration);
 
-        /*         console.log(`- '${ feed.channel.item[0].title }'`)
-                console.log(`- '${ feed.channel.item[0].description }'`)
-         */
+        await new Promise<void>((resolve) =>
+        {
+            process.on('SIGINT', () =>
+            {
+                console.log('Shutting down feed aggregator...');
+                clearInterval(interval);
+                resolve();
+            });
+        });
     } catch (error)
     {
         if (error instanceof Error)
@@ -153,6 +165,8 @@ export async function handlerUnfollow (cmdName: string, user: User, ...args: str
         {
             throw new Error(`Failed to create follow`);
         }
+        console.log("Successfully deleted follow:", result)
+
     } catch (error)
     {
         if (error instanceof Error)
@@ -189,3 +203,37 @@ export async function handlerListFollows (cmdName: string, user: User)
         }
     }
 }
+
+export async function scrapeFeeds ()
+{
+    try
+    {
+        const nextFeed = await getNextFeedToFetch()
+        if (!nextFeed)
+        {
+            throw new Error(`Failed to fetch next feed`);
+        }
+        console.log("Successfully fetched next feed:", nextFeed)
+        const updatedFeed = await markFeedFetched(nextFeed.id)
+        if (!updatedFeed)
+        {
+            throw new Error(`Failed to update next feed`);
+        }
+        console.log("Successfully updated next feed:", updatedFeed)
+
+        const feedData = await fetchFeed(nextFeed.url)
+        const feedDataStr = JSON.stringify(feedData, null, 2);
+
+        console.log(feedDataStr);
+    } catch (error)
+    {
+        if (error instanceof Error)
+        {
+            throw error;
+        } else
+        {
+            throw new Error(`unexpected error handling scraping feeds, ${ error }`)
+        }
+    }
+}
+

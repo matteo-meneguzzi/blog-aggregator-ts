@@ -1,8 +1,5 @@
 import { readConfig, setUser } from "../config";
-import { createFeed, createFeedFollow, getFeedFollowsForUser, getFeeds } from "../db/queries/feeds";
 import { createUser, deleteAllUsers, getUser, getUsers } from "../db/queries/users";
-import { printFeed, User } from "../helpers";
-import { fetchFeed } from "../rss_feed";
 
 export async function handlerLogin (cmdName: string, ...args: string[])
 {
